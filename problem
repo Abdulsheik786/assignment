@@ -1,0 +1,193 @@
+import math
+
+def caesar_cipher(message, shift, mode='encode'):
+    result = ""
+    if mode == 'decode':
+        shift = -shift
+
+    for char in message:
+        if 'a' <= char <= 'z':
+            start = ord('a')
+            shifted_char_code = (ord(char) - start + shift) % 26 + start
+            result += chr(shifted_char_code)
+        elif 'A' <= char <= 'Z':
+            start = ord('A')
+            shifted_char_code = (ord(char) - start + shift) % 26 + start
+            result += chr(shifted_char_code)
+        else:
+            result += char
+    return result
+
+def format_indian_currency(number):
+    s = str(number)
+    if '.' in s:
+        parts = s.split('.')
+        integer_part = parts[0]
+        decimal_part = '.' + parts[1]
+    else:
+        integer_part = s
+        decimal_part = ''
+
+    sign = ''
+    if integer_part.startswith('-'):
+        sign = '-'
+        integer_part = integer_part[1:]
+
+    formatted_integer_parts = []
+    
+    if len(integer_part) > 3:
+        formatted_integer_parts.append(integer_part[-3:])
+        integer_part = integer_part[:-3]
+
+        while len(integer_part) > 0:
+            formatted_integer_parts.append(integer_part[-2:])
+            integer_part = integer_part[:-2]
+    else:
+        formatted_integer_parts.append(integer_part)
+
+    formatted_integer_parts.reverse()
+    return sign + ','.join(formatted_integer_parts) + decimal_part
+
+def combine_lists(list1, list2):
+    combined_and_sorted = sorted(list1 + list2, key=lambda x: x["positions"][0])
+    result = []
+
+    if not combined_and_sorted:
+        return []
+
+    current_element = combined_and_sorted[0]
+
+    for i in range(1, len(combined_and_sorted)):
+        next_element = combined_and_sorted[i]
+
+        current_left, current_right = current_element["positions"]
+        next_left, next_right = next_element["positions"]
+
+        overlap_left = max(current_left, next_left)
+        overlap_right = min(current_right, next_right)
+        overlap_length = max(0, overlap_right - overlap_left)
+
+        current_length = current_right - current_left
+        next_length = next_right - next_left
+
+        should_combine = False
+        if current_length > 0 and overlap_length > current_length / 2:
+            should_combine = True
+        if next_length > 0 and overlap_length > next_length / 2:
+            should_combine = True
+
+        if should_combine:
+            current_element["values"] = list(set(current_element["values"] + next_element["values"]))
+        else:
+            result.append(current_element)
+            current_element = next_element
+    
+    result.append(current_element)
+
+    return result
+
+def minimize_loss(prices):
+    n = len(prices)
+    if n < 2:
+        return (None, None, None)
+
+    min_loss = float('inf')
+    best_buy_year = None
+    best_sell_year = None
+
+    for buy_year_idx in range(n - 1):
+        buy_price = prices[buy_year_idx]
+        
+        for sell_year_idx in range(buy_year_idx + 1, n):
+            sell_price = prices[sell_year_idx]
+
+            if sell_price < buy_price:
+                current_loss = buy_price - sell_price
+                
+                if current_loss < min_loss:
+                    min_loss = current_loss
+                    best_buy_year = buy_year_idx + 1
+                    best_sell_year = sell_year_idx + 1
+
+    if min_loss == float('inf'):
+        return (None, None, None)
+    else:
+        return (best_buy_year, best_sell_year, min_loss)
+
+if __name__ == "__main__":
+    print("--- Caesar Cipher ---")
+    message = "Hello, World!"
+    shift = 3
+    encoded_message = caesar_cipher(message, shift, mode='encode')
+    print(f"Original: {message}")
+    print(f"Encoded (shift {shift}): {encoded_message}")
+
+    decoded_message = caesar_cipher(encoded_message, shift, mode='decode')
+    print(f"Decoded (shift {shift}): {decoded_message}")
+    print("-" * 20)
+
+    print("--- Indian Currency Format ---")
+    num1 = 123456.7891
+    num2 = 10000000.0
+    num3 = 500.25
+    num4 = 123
+    num5 = -9876543.21
+    print(f"Original: {num1}, Formatted: {format_indian_currency(num1)}")
+    print(f"Original: {num2}, Formatted: {format_indian_currency(num2)}")
+    print(f"Original: {num3}, Formatted: {format_indian_currency(num3)}")
+    print(f"Original: {num4}, Formatted: {format_indian_currency(num4)}")
+    print(f"Original: {num5}, Formatted: {format_indian_currency(num5)}")
+    print("-" * 20)
+
+    print("--- Combining Two Lists ---")
+    list_a = [
+        {"positions": [10, 30], "values": ["A"]},
+        {"positions": [50, 70], "values": ["B"]},
+        {"positions": [100, 120], "values": ["C"]}
+    ]
+    list_b = [
+        {"positions": [20, 45], "values": ["X"]},
+        {"positions": [60, 80], "values": ["Y"]},
+        {"positions": [110, 130], "values": ["Z"]}
+    ]
+    list_c = [
+        {"positions": [10, 20], "values": ["P1"]},
+        {"positions": [18, 28], "values": ["P2"]},
+        {"positions": [30, 40], "values": ["P3"]}
+    ]
+    list_d = [
+        {"positions": [15, 25], "values": ["Q1"]},
+        {"positions": [26, 35], "values": ["Q2"]},
+    ]
+
+    print("Example 1 (A + B):")
+    combined_ab = combine_lists(list_a, list_b)
+    for item in combined_ab:
+        print(item)
+    print("\nExample 2 (C + D):")
+    combined_cd = combine_lists(list_c, list_d)
+    for item in combined_cd:
+        print(item)
+    print("-" * 20)
+
+    print("--- Minimizing Loss ---")
+    prices1 = [20, 15, 7, 2, 13]
+    buy_year1, sell_year1, loss1 = minimize_loss(prices1)
+    print(f"Prices: {prices1}")
+    print(f"Buy in year {buy_year1}, Sell in year {sell_year1}, Loss: {loss1}")
+
+    prices2 = [10, 8, 6, 4, 2]
+    buy_year2, sell_year2, loss2 = minimize_loss(prices2)
+    print(f"Prices: {prices2}")
+    print(f"Buy in year {buy_year2}, Sell in year {sell_year2}, Loss: {loss2}")
+
+    prices3 = [1, 2, 3, 4, 5]
+    buy_year3, sell_year3, loss3 = minimize_loss(prices3)
+    print(f"Prices: {prices3}")
+    print(f"Buy in year {buy_year3}, Sell in year {sell_year3}, Loss: {loss3}")
+
+    prices4 = [5, 4, 3, 2, 10]
+    buy_year4, sell_year4, loss4 = minimize_loss(prices4)
+    print(f"Prices: {prices4}")
+    print(f"Buy in year {buy_year4}, Sell in year {sell_year4}, Loss: {loss4}")
+    print("-" * 20)
